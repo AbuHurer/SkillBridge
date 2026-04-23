@@ -1,0 +1,8 @@
+Full Name: Mohammed Abu Hurer
+Email: mohammedabuhurer@gmail.com
+Phone: +91-9148612673
+GitHub Profile: https://github.com/AbuHurer
+
+The most challenging part of the build was implementing the dual-layer authentication 
+flow for Monitoring Officers, ensuring that identity verification and system-level 
+API keys were correctly validated before issuing scoped tokens.
