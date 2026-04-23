@@ -9,24 +9,28 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 import sys
-current_dir = Path(__file__).resolve().parent
+# --- 1. BULLETPROOF PATH FIX ---
+# This finds the directory where main.py lives and adds it to the Python path.
+# It works regardless of how many 'src' folders are nested.
+current_file = Path(__file__).resolve()
+current_dir = current_file.parent
 if str(current_dir) not in sys.path:
     sys.path.append(str(current_dir))
 
-# 2. Load environment variables
+# 2. Load environment variables from the root (one level up from src)
 env_path = current_dir.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# 3. Robust Imports: This handles both local and Render environments
+# 3. Robust Imports
+# This syntax handles all environments (Local, Render, Nested)
 try:
     import models
     import database
     import auth_utils
+    import schemas
     from database import engine, get_db
-except ImportError:
-    from . import models
-    from . import database
-    from . import auth_utils
+except (ImportError, ModuleNotFoundError):
+    from . import models, database, auth_utils, schemas
     from .database import engine, get_db
 
 # Create database tables on startup
