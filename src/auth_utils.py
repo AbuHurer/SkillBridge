@@ -1,4 +1,5 @@
 import os
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional, List
 from jose import JWTError, jwt
@@ -12,7 +13,16 @@ import models
 from dotenv import load_dotenv
 
 if not hasattr(bcrypt, "__about__"):
-    bcrypt.__about__ = type('about', (object,), {'__version__': bcrypt.__version__})
+    # We try to get the version, falling back to "4.0.1" if __version__ is missing
+    bcrypt_version = getattr(bcrypt, "__version__", "4.0.1")
+    # We use a try-except to handle cases where 'bcrypt' is shadowed by a class
+    try:
+        bcrypt.__about__ = type('about', (object,), {'__version__': bcrypt_version})
+    except (AttributeError, TypeError):
+        # If shadowing occurs, we can target the module directly via sys.modules
+        import sys
+        if 'bcrypt' in sys.modules:
+            sys.modules['bcrypt'].__about__ = type('about', (object,), {'__version__': bcrypt_version})
 
 load_dotenv() # Load environment variables from .env file
 # Config from PDF requirements
