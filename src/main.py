@@ -9,29 +9,38 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 import sys
-# --- 1. BULLETPROOF PATH FIX ---
-# This finds the directory where main.py lives and adds it to the Python path.
-# It works regardless of how many 'src' folders are nested.
-current_file = Path(__file__).resolve()
-current_dir = current_file.parent
-if str(current_dir) not in sys.path:
-    sys.path.append(str(current_dir))
+# --- 1. AGGRESSIVE PATH & IMPORT RESOLUTION ---
+# This ensures that the current directory and its parent are both in the search path.
+# This fixes "ModuleNotFoundError: No module named 'models'" for nested structures.
+BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+if str(BASE_DIR.parent) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR.parent))
 
-# 2. Load environment variables from the root (one level up from src)
-env_path = current_dir.parent / '.env'
+# 2. Load environment variables
+env_path = BASE_DIR.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# 3. Robust Imports
-# This syntax handles all environments (Local, Render, Nested)
+# 3. Flexible Module Imports
 try:
-    import models
-    import database
-    import auth_utils
-    import schemas
-    from database import engine, get_db
-except (ImportError, ModuleNotFoundError):
-    from . import models, database, auth_utils, schemas
-    from .database import engine, get_db
+    # Try importing as a package first (recommended for Uvicorn)
+    try:
+        from . import models, database, auth_utils, schemas
+        from .database import engine, get_db
+    except (ImportError, ValueError):
+        # Fallback to direct top-level imports
+        import models
+        import database
+        import auth_utils
+        import schemas
+        from database import engine, get_db
+except Exception as e:
+    # Final debugging info for the logs if it still fails
+    print(f"CRITICAL IMPORT ERROR: {e}")
+    print(f"Python Path: {sys.path}")
+    print(f"Current Directory Contents: {os.listdir(BASE_DIR)}")
+    raise e
 
 # Create database tables on startup
 models.Base.metadata.create_all(bind=engine)
