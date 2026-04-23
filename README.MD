@@ -6,9 +6,13 @@ SkillBridge is a vocational training management backend built with FastAPI. It f
 
 - **Base URL:** `http://localhost:8000` (local development)
 - **Interactive Docs:** `http://localhost:8000/docs` (Swagger UI)
+- **Live Link On Render:** `https://skillbridge-o9cd.onrender.com` (Render.com)
 
 **Deployment Note:**  
 This API is configured for local production environments using Uvicorn. For cloud deployment (for example AWS or Heroku), ensure `SECRET_KEY` and `MONITORING_API_KEY` are set through environment variables rather than `.env` files.
+This API is live  at render.com deployed at `https://skillbridge-o9cd.onrender.com` NOTE: DO NOT FORGET TO USE YOUR .env VARIABLES
+
+##⚠️Caution the deployed weblink does not contain frontend it is desinged purely for API testing purposes for education.
 
 ## 2. Local Setup Instructions
 
