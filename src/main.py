@@ -1,46 +1,45 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Body
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from datetime import datetime, timedelta
-import secrets
-import models, schemas, auth_utils
-from database import engine, get_db
 import os
-from dotenv import load_dotenv
-from pathlib import Path
 import sys
-# --- 1. AGGRESSIVE PATH & IMPORT RESOLUTION ---
-# This ensures that the current directory and its parent are both in the search path.
-# This fixes "ModuleNotFoundError: No module named 'models'" for nested structures.
+from pathlib import Path
+
+# --- 1. CRITICAL: AGGRESSIVE PATH RESOLUTION (Must be at the very top) ---
+# This ensures that the directory containing this file is the first place Python looks for modules.
+# This fixes "ModuleNotFoundError: No module named 'models'"
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
+
+# Also add the parent directory to the path to find the .env file
 if str(BASE_DIR.parent) not in sys.path:
     sys.path.insert(0, str(BASE_DIR.parent))
+
+from datetime import date, timedelta, datetime
+import secrets
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, status, Body
+from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
 # 2. Load environment variables
 env_path = BASE_DIR.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# 3. Flexible Module Imports
+# 3. Robust Imports
+# We use the absolute path resolution set above to import our local modules.
 try:
-    # Try importing as a package first (recommended for Uvicorn)
+    import models
+    import database
+    import auth_utils
+    import schemas
+    from database import engine, get_db
+except ImportError as e:
+    # Fallback for environments where relative imports are required
     try:
         from . import models, database, auth_utils, schemas
         from .database import engine, get_db
-    except (ImportError, ValueError):
-        # Fallback to direct top-level imports
-        import models
-        import database
-        import auth_utils
-        import schemas
-        from database import engine, get_db
-except Exception as e:
-    # Final debugging info for the logs if it still fails
-    print(f"CRITICAL IMPORT ERROR: {e}")
-    print(f"Python Path: {sys.path}")
-    print(f"Current Directory Contents: {os.listdir(BASE_DIR)}")
-    raise e
+    except ImportError:
+        print(f"CRITICAL ERROR: Could not find local modules. {e}")
+        raise e
 
 # Create database tables on startup
 models.Base.metadata.create_all(bind=engine)
