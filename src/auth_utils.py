@@ -5,10 +5,14 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
+from passlib.hash import bcrypt
 from database import get_db
 from sqlalchemy.orm import Session
 import models
 from dotenv import load_dotenv
+
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = type('about', (object,), {'__version__': bcrypt.__version__})
 
 load_dotenv() # Load environment variables from .env file
 # Config from PDF requirements
