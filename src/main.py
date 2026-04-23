@@ -2,44 +2,34 @@ import os
 import sys
 from pathlib import Path
 
-# --- 1. CRITICAL: AGGRESSIVE PATH RESOLUTION (Must be at the very top) ---
-# This ensures that the directory containing this file is the first place Python looks for modules.
-# This fixes "ModuleNotFoundError: No module named 'models'"
+# --- 1. STANDARDIZED PATH RESOLUTION ---
+# We find the absolute path of the 'src' directory and ensure it's at the front of sys.path.
+# This prevents SQLAlchemy from loading 'models.py' twice under different module names.
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-# Also add the parent directory to the path to find the .env file
+# Also ensure the parent directory is available for .env lookups
 if str(BASE_DIR.parent) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR.parent))
+    sys.path.append(str(BASE_DIR.parent))
 
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 import secrets
-from typing import List
+from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 # 2. Load environment variables
-env_path = BASE_DIR.parent / '.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=BASE_DIR.parent / '.env')
 
-# 3. Robust Imports
-# We use the absolute path resolution set above to import our local modules.
-try:
-    import models
-    import database
-    import auth_utils
-    import schemas
-    from database import engine, get_db
-except ImportError as e:
-    # Fallback for environments where relative imports are required
-    try:
-        from . import models, database, auth_utils, schemas
-        from .database import engine, get_db
-    except ImportError:
-        print(f"CRITICAL ERROR: Could not find local modules. {e}")
-        raise e
+# 3. Clean Imports
+# By setting sys.path above, we can now use simple direct imports.
+import models
+import database
+import auth_utils
+import schemas
+from database import engine, get_db
 
 # Create database tables on startup
 models.Base.metadata.create_all(bind=engine)
