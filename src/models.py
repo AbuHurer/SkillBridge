@@ -11,7 +11,8 @@ batch_trainers = Table(
     'batch_trainers',
     Base.metadata,
     Column('batch_id', Integer, ForeignKey('batches.id', ondelete="CASCADE"), primary_key=True),
-    Column('trainer_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
+    Column('trainer_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
+    extend_existing=True
 )
 
 # PDF Req: batch_students (batch_id, student_id)
@@ -19,7 +20,8 @@ batch_students = Table(
     'batch_students',
     Base.metadata,
     Column('batch_id', Integer, ForeignKey('batches.id', ondelete="CASCADE"), primary_key=True),
-    Column('student_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
+    Column('student_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
+    extend_existing=True
 )
 
 # --- MODELS ---
