@@ -35,7 +35,7 @@ def verify_password(plain_password, hashed_password):
 def hash_password(password):
     return pwd_context.hash(password)
 
-# For backward compatibility with some versions of main.py
+# For backward compatibility with some versions of main.py or seed.py
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -52,7 +52,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     """
-    Renamed from get_current_user_data to match main.py calls.
     Decodes the JWT and returns the payload (user_id and role).
     """
     credentials_exception = HTTPException(
@@ -62,12 +61,16 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        # Ensure user_id or sub is present
+        # Check for both 'user_id' (new) and 'sub' (JWT standard) for robustness
         if "user_id" not in payload and "sub" not in payload:
             raise credentials_exception
         return payload
     except JWTError:
         raise credentials_exception
+
+# --- 5. COMPATIBILITY ALIAS (Fixes AttributeError) ---
+# This ensures that files calling the old function name don't crash the app
+get_current_user_data = get_current_user
 
 def check_role(allowed_roles: List[str]):
     """
