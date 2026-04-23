@@ -8,7 +8,9 @@ from fastapi.security import OAuth2PasswordBearer
 from database import get_db
 from sqlalchemy.orm import Session
 import models
+from dotenv import load_dotenv
 
+load_dotenv() # Load environment variables from .env file
 # Config from PDF requirements
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-for-local-dev")
 ALGORITHM = "HS256"

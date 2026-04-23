@@ -6,6 +6,28 @@ import secrets
 import models, schemas, auth_utils
 from database import engine, get_db
 import os
+from dotenv import load_dotenv
+from pathlib import Path
+import sys
+current_dir = Path(__file__).resolve().parent
+if str(current_dir) not in sys.path:
+    sys.path.append(str(current_dir))
+
+# 2. Load environment variables
+env_path = current_dir.parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
+# 3. Robust Imports: This handles both local and Render environments
+try:
+    import models
+    import database
+    import auth_utils
+    from database import engine, get_db
+except ImportError:
+    from . import models
+    from . import database
+    from . import auth_utils
+    from .database import engine, get_db
 
 # Create database tables on startup
 models.Base.metadata.create_all(bind=engine)
